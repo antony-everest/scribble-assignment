@@ -56,6 +56,8 @@ export function createRoom(playerName?: string) {
     status: "lobby",
     hostId: participant.id,
     participants: [participant],
+    currentDrawerId: null,
+    secretWord: null,
     createdAt: now(),
     updatedAt: now()
   };
@@ -123,6 +125,37 @@ export function startGame(code: string, requesterId: string): { room: Room } | {
     return { error: "At least 2 players are required to start" };
   }
 
+  const trimmedNames = room.participants.map((p) => ({
+    id: p.id,
+    name: p.name.trim()
+  }));
+
+  const emptyName = trimmedNames.find((p) => p.name.length === 0);
+  if (emptyName) {
+    return { error: `Name is empty after trimming` };
+  }
+
+  const seen = new Map<string, string[]>();
+  for (const p of trimmedNames) {
+    const existing = seen.get(p.name) ?? [];
+    existing.push(p.id);
+    seen.set(p.name, existing);
+  }
+
+  const duplicates = [...seen.entries()].filter(([, ids]) => ids.length > 1);
+  if (duplicates.length > 0) {
+    const names = duplicates.map(([name]) => name).join(", ");
+    return { error: `Duplicate names after trimming: ${names}` };
+  }
+
+  for (const p of room.participants) {
+    p.name = p.name.trim();
+  }
+
+  const wordIndex = (room.participants.length - 2) % STARTER_WORDS.length;
+
+  room.currentDrawerId = room.hostId;
+  room.secretWord = STARTER_WORDS[wordIndex];
   room.status = "playing";
   room.updatedAt = now();
   rooms.set(room.code, room);
@@ -131,13 +164,13 @@ export function startGame(code: string, requesterId: string): { room: Room } | {
 }
 
 export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSnapshot {
-  void viewerParticipantId;
-
   return {
     code: room.code,
     status: room.status,
     hostId: room.hostId,
     participants: room.participants.map((participant) => ({ ...participant })),
+    currentDrawerId: room.currentDrawerId,
+    secretWord: viewerParticipantId === room.currentDrawerId ? room.secretWord : null,
     availableWords: listWords(),
     roles: [...STARTER_ROLES]
   };

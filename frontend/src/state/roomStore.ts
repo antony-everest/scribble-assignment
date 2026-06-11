@@ -104,7 +104,7 @@ class RoomStore {
       throw new Error("No active room");
     }
 
-    const response = await this.withLoading(() => api.startGame(this.state.room!.code));
+    const response = await this.withLoading(() => api.startGame(this.state.room!.code, this.state.participantId ?? undefined));
     this.setRoomSnapshot(response.room);
     return response.room;
   }
