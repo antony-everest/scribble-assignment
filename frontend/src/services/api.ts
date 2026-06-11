@@ -12,6 +12,8 @@ export interface RoomSnapshot {
   status: RoomStatus;
   hostId: string;
   participants: Participant[];
+  currentDrawerId: string | null;
+  secretWord: string | null;
   availableWords: string[];
   roles: ParticipantRole[];
 }
@@ -60,8 +62,9 @@ export const api = {
     const query = participantId ? `?participantId=${encodeURIComponent(participantId)}` : "";
     return request<{ room: RoomSnapshot }>(`/rooms/${encodeURIComponent(code)}${query}`);
   },
-  startGame(code: string) {
-    return request<{ room: RoomSnapshot }>(`/rooms/${encodeURIComponent(code)}/start`, {
+  startGame(code: string, participantId?: string) {
+    const query = participantId ? `?participantId=${encodeURIComponent(participantId)}` : "";
+    return request<{ room: RoomSnapshot }>(`/rooms/${encodeURIComponent(code)}/start${query}`, {
       method: "POST",
       body: "{}"
     });

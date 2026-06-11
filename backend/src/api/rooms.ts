@@ -61,8 +61,13 @@ export function createRoomsRouter() {
       }
 
       if ("error" in result) {
-        const status = result.error === "Room not found" ? 404 : 400;
-        throw new HttpError(status, result.error);
+        if (result.error === "Room not found") {
+          throw new HttpError(404, result.error);
+        }
+        if (result.error.startsWith("Only the host")) {
+          throw new HttpError(403, result.error);
+        }
+        throw new HttpError(400, result.error);
       }
 
       response.json({
