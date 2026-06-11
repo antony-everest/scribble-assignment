@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { Participant, Room, RoomSnapshot } from "../models/game.js";
+import type { Guess, Participant, Room, RoomSnapshot, Stroke } from "../models/game.js";
 import { STARTER_ROLES, STARTER_WORDS } from "../seed/starterData.js";
 
 const rooms = new Map<string, Room>();
@@ -58,6 +58,8 @@ export function createRoom(playerName?: string) {
     participants: [participant],
     currentDrawerId: null,
     secretWord: null,
+    guessHistory: [],
+    canvasStrokes: [],
     createdAt: now(),
     updatedAt: now()
   };
@@ -163,6 +165,125 @@ export function startGame(code: string, requesterId: string): { room: Room } | {
   return { room: cloneRoom(room) };
 }
 
+function computeScores(guessHistory: Guess[]): Record<string, number> {
+  const scores: Record<string, number> = {};
+
+  for (const guess of guessHistory) {
+    if (guess.isCorrect) {
+      scores[guess.participantId] = (scores[guess.participantId] ?? 0) + 100;
+    }
+  }
+
+  return scores;
+}
+
+function allGuessersCorrect(room: Room): boolean {
+  const guesserIds = room.participants
+    .filter((p) => p.id !== room.currentDrawerId)
+    .map((p) => p.id);
+
+  if (guesserIds.length === 0) {
+    return false;
+  }
+
+  const correctGuesserIds = new Set(
+    room.guessHistory
+      .filter((g) => g.isCorrect)
+      .map((g) => g.participantId)
+  );
+
+  return guesserIds.every((id) => correctGuesserIds.has(id));
+}
+
+export function drawStroke(code: string, requesterId: string, stroke: Stroke): { room: Room } | { error: string } | null {
+  const room = rooms.get(code);
+
+  if (!room) {
+    return { error: "Room not found" };
+  }
+
+  if (room.currentDrawerId !== requesterId) {
+    return { error: "Only the drawer can draw" };
+  }
+
+  room.canvasStrokes.push(stroke);
+  room.updatedAt = now();
+  rooms.set(room.code, room);
+
+  return { room: cloneRoom(room) };
+}
+
+export function clearCanvas(code: string, requesterId: string): { room: Room } | { error: string } | null {
+  const room = rooms.get(code);
+
+  if (!room) {
+    return { error: "Room not found" };
+  }
+
+  if (room.currentDrawerId !== requesterId) {
+    return { error: "Only the drawer can clear the canvas" };
+  }
+
+  room.canvasStrokes = [];
+  room.updatedAt = now();
+  rooms.set(room.code, room);
+
+  return { room: cloneRoom(room) };
+}
+
+export function submitGuess(code: string, requesterId: string, text: string): { room: Room } | { error: string } | null {
+  const room = rooms.get(code);
+
+  if (!room) {
+    return { error: "Room not found" };
+  }
+
+  const trimmed = text.trim();
+
+  if (trimmed.length === 0) {
+    return { error: "Guess cannot be empty" };
+  }
+
+  if (room.currentDrawerId === requesterId) {
+    return { error: "The drawer cannot submit guesses" };
+  }
+
+  const alreadyCorrect = room.guessHistory.some(
+    (g) => g.participantId === requesterId && g.isCorrect
+  );
+
+  if (alreadyCorrect) {
+    return { error: "You have already guessed correctly" };
+  }
+
+  const participant = room.participants.find((p) => p.id === requesterId);
+
+  if (!participant) {
+    return { error: "Participant not found in room" };
+  }
+
+  const isCorrect = trimmed.toLowerCase() === (room.secretWord ?? "").toLowerCase();
+
+  const guess: Guess = {
+    participantId: requesterId,
+    name: participant.name,
+    text: trimmed,
+    isCorrect,
+    timestamp: now()
+  };
+
+  room.guessHistory.push(guess);
+
+  if (allGuessersCorrect(room)) {
+    room.status = "finished";
+  }
+
+  room.updatedAt = now();
+  rooms.set(room.code, room);
+
+  return { room: cloneRoom(room) };
+}
+
 export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSnapshot {
   return {
     code: room.code,
@@ -171,6 +292,9 @@ export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSn
     participants: room.participants.map((participant) => ({ ...participant })),
     currentDrawerId: room.currentDrawerId,
     secretWord: viewerParticipantId === room.currentDrawerId ? room.secretWord : null,
+    guessHistory: room.guessHistory.map((g) => ({ ...g })),
+    scores: computeScores(room.guessHistory),
+    canvasStrokes: room.canvasStrokes.map((s) => structuredClone(s)),
     availableWords: listWords(),
     roles: [...STARTER_ROLES]
   };

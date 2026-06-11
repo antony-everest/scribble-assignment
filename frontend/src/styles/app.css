@@ -543,6 +543,147 @@ input {
   font-weight: 500;
 }
 
+/* --- CANVAS --- */
+.canvas-container {
+  position: relative;
+}
+
+.canvas-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  flex-wrap: wrap;
+}
+
+.canvas-toolbar__group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.canvas-toolbar__color {
+  width: 24px;
+  height: 24px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  transition: border-color 0.15s;
+}
+
+.canvas-toolbar__color--active {
+  border-color: #6366f1;
+}
+
+.canvas-toolbar__size {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0;
+  background: none;
+  transition: border-color 0.15s;
+}
+
+.canvas-toolbar__size--active {
+  border-color: #6366f1;
+}
+
+.button--small {
+  padding: 4px 12px;
+  font-size: 0.8125rem;
+}
+
+/* --- SCOREBOARD --- */
+.scoreboard {
+  display: grid;
+  gap: 8px;
+}
+
+.scoreboard__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.scoreboard__row:last-child {
+  border-bottom: 0;
+}
+
+.scoreboard__name {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.scoreboard__role {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  font-weight: 400;
+}
+
+.scoreboard__score {
+  font-size: 1.125rem;
+  color: var(--primary);
+}
+
+/* --- GUESS HISTORY --- */
+.guess-history {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.guess-history__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.guess-history__item--correct {
+  background-color: #f0fdf4;
+}
+
+.guess-history__item--incorrect {
+  background-color: #fef2f2;
+}
+
+.guess-history__name {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.guess-history__text {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.guess-history__result {
+  margin-left: auto;
+  font-weight: 600;
+  font-size: 0.8125rem;
+}
+
+.guess-history__result--correct {
+  color: #16a34a;
+}
+
+.guess-history__result--incorrect {
+  color: #dc2626;
+}
+
 @media (max-width: 720px) {
   .app-shell {
     padding: 24px 16px;
