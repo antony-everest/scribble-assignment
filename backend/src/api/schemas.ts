@@ -12,6 +12,8 @@ export const roomCodeParamsSchema = z.object({
   code: z.string()
 });
 
+export const startGameSchema = z.object({});
+
 export const roomViewerQuerySchema = z.object({
   participantId: z.string().optional()
 });
