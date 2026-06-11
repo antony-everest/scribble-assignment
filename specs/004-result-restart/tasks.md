@@ -48,8 +48,8 @@
 
 ### Implementation for User Story 1
 
-- [ ] T002 [US1] Update `toRoomSnapshot` in `backend/src/services/roomStore.ts` to always include `secretWord` when `room.status === "finished"` (regardless of viewer identity)
-- [ ] T003 [US1] Update `frontend/src/pages/GamePage.tsx` to show the secret word to ALL participants in the "finished" view (currently only shown to drawer)
+- [ ] T002 [P] [US1] Update `toRoomSnapshot` in `backend/src/services/roomStore.ts` to always include `secretWord` when `room.status === "finished"` (regardless of viewer identity)
+- [ ] T003 [P] [US1] Update `frontend/src/pages/GamePage.tsx` to show the secret word to ALL participants in the "finished" view (currently only shown to drawer)
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -64,11 +64,11 @@
 ### Implementation for User Story 2
 
 - [ ] T004 [P] [US2] Add `restartGame` function in `backend/src/services/roomStore.ts` — validates room exists, requester is host, game is finished; resets `guessHistory`, `canvasStrokes`, `currentDrawerId`, `secretWord`; sets `status` to "lobby"; returns updated room
-- [ ] T005 [US2] Add `POST /rooms/:code/restart` route in `backend/src/api/rooms.ts` — uses existing `requireParticipantIdQuerySchema` and `roomCodeParamsSchema`; returns 400 if not finished, 403 if not host
+- [ ] T005 [US2] Add `POST /rooms/:code/restart` route in `backend/src/api/rooms.ts` — uses existing `roomViewerQuerySchema` and `roomCodeParamsSchema`; returns 400 if not finished, 403 if not host
 - [ ] T006 [P] [US2] Add `restartGame` method to `api` object in `frontend/src/services/api.ts`
 - [ ] T007 [US2] Add `restartGame` action in `frontend/src/state/roomStore.ts`
 - [ ] T008 [US2] Update `frontend/src/pages/GamePage.tsx` — in the "finished" view: show a "Play Again" button for the host only (hidden/disabled for non-hosts); on click call `store.restartGame()`; on success navigate to `/lobby`
-- [ ] T009 [US2] Verify `frontend/src/pages/LobbyPage.tsx` handles the lobby state after restart correctly — the existing lobby already polls for status "lobby" and shows the Start Game button for the host; confirm this works after restart
+- [ ] T009 [US2] Verify `frontend/src/pages/LobbyPage.tsx` handles the lobby state after restart correctly: lobby shows the same room code and participant list; host sees the "Start Game" button; non-host participants do not see the "Start Game" button; no guess history, canvas, scores, drawer assignment, or secret word are displayed
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 

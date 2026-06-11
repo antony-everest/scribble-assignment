@@ -77,6 +77,8 @@ As the host, when the game has finished, I want to restart the game so that all 
 
 ### Measurable Outcomes
 
+*Poll interval is ~2 seconds (standard frontend polling rate).*
+
 - **SC-001**: Within one poll cycle of the game ending, all participants see the secret word, final scores, and full guess history
 - **SC-002**: Only the host can trigger the restart action; non-host participants see the restart option disabled or hidden
 - **SC-003**: On restart, all participants see the lobby with the same room code and the same player list within one poll cycle
@@ -92,3 +94,4 @@ As the host, when the game has finished, I want to restart the game so that all 
 - Players who join after restart follow the existing lobby join flow (max 4 participants)
 - The canvas is cleared on restart (not preserved for the next round)
 - Scores reset to 0 on restart (each round is independent)
+- Manual restart by the host does not constitute "multiple rounds" as defined by the architecture constraints (which refer to automated drawer rotation and round progression); each restart is an explicit host action that resets all state to the lobby, and a new game must be started manually
