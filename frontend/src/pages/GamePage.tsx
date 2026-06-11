@@ -28,12 +28,18 @@ export function GamePage() {
   const drawer = room.participants.find((p) => p.id === room.currentDrawerId) ?? null;
   const isFinished = room.status === "finished";
 
+  const isHost = participantId === room.hostId;
   const alreadyCorrect = !isDrawer && room.guessHistory.some(
     (g) => g.participantId === participantId && g.isCorrect
   );
 
   async function handleGuess(text: string) {
     await store.submitGuess(text);
+  }
+
+  async function handleRestart() {
+    await store.restartGame();
+    navigate("/lobby");
   }
 
   if (isFinished) {
@@ -54,6 +60,26 @@ export function GamePage() {
           </aside>
 
           <div className="game-page__main">
+            <Card title="The Word Was">
+              <div
+                className="canvas-placeholder secret-word"
+                style={{
+                  marginBottom: "0.5rem",
+                  padding: "0.75rem",
+                  backgroundColor: "#fefce8",
+                  border: "2px solid #eab308",
+                  borderRadius: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "1.5rem",
+                  fontWeight: "bold",
+                  color: "#854d0e"
+                }}
+              >
+                {room.secretWord ?? "No word assigned"}
+              </div>
+            </Card>
             <Card title="Final Canvas">
               <Canvas strokes={room.canvasStrokes} isDrawer={false} />
             </Card>
@@ -80,7 +106,12 @@ export function GamePage() {
         </div>
 
         <div className="button-row">
-          <button className="button button--primary" onClick={() => navigate("/")}>
+          {isHost && (
+            <button className="button button--primary" onClick={handleRestart}>
+              Play Again
+            </button>
+          )}
+          <button className="button button--secondary" onClick={() => navigate("/")}>
             Back to Home
           </button>
         </div>

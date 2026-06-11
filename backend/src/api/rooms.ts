@@ -16,6 +16,7 @@ import {
   drawStroke,
   getRoom,
   joinRoom,
+  restartGame,
   startGame,
   submitGuess,
   toRoomSnapshot
@@ -160,6 +161,34 @@ export function createRoomsRouter() {
           throw new HttpError(403, result.error);
         }
         if (result.error.startsWith("You have already")) {
+          throw new HttpError(403, result.error);
+        }
+        throw new HttpError(400, result.error);
+      }
+
+      response.json({
+        room: toRoomSnapshot(result.room, participantId)
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/:code/restart", (request, response, next) => {
+    try {
+      const { code } = roomCodeParamsSchema.parse(request.params);
+      const { participantId } = roomViewerQuerySchema.parse(request.query);
+      const result = restartGame(code.toUpperCase(), participantId ?? "");
+
+      if (!result) {
+        throw new HttpError(404, "Room not found");
+      }
+
+      if ("error" in result) {
+        if (result.error === "Room not found") {
+          throw new HttpError(404, result.error);
+        }
+        if (result.error.startsWith("Only the host")) {
           throw new HttpError(403, result.error);
         }
         throw new HttpError(400, result.error);

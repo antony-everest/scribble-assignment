@@ -284,6 +284,32 @@ export function submitGuess(code: string, requesterId: string, text: string): { 
   return { room: cloneRoom(room) };
 }
 
+export function restartGame(code: string, requesterId: string): { room: Room } | { error: string } | null {
+  const room = rooms.get(code);
+
+  if (!room) {
+    return { error: "Room not found" };
+  }
+
+  if (room.hostId !== requesterId) {
+    return { error: "Only the host can restart the game" };
+  }
+
+  if (room.status !== "finished") {
+    return { error: "Game is not finished" };
+  }
+
+  room.currentDrawerId = null;
+  room.secretWord = null;
+  room.guessHistory = [];
+  room.canvasStrokes = [];
+  room.status = "lobby";
+  room.updatedAt = now();
+  rooms.set(room.code, room);
+
+  return { room: cloneRoom(room) };
+}
+
 export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSnapshot {
   return {
     code: room.code,
@@ -291,7 +317,7 @@ export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSn
     hostId: room.hostId,
     participants: room.participants.map((participant) => ({ ...participant })),
     currentDrawerId: room.currentDrawerId,
-    secretWord: viewerParticipantId === room.currentDrawerId ? room.secretWord : null,
+    secretWord: room.status === "finished" || viewerParticipantId === room.currentDrawerId ? room.secretWord : null,
     guessHistory: room.guessHistory.map((g) => ({ ...g })),
     scores: computeScores(room.guessHistory),
     canvasStrokes: room.canvasStrokes.map((s) => structuredClone(s)),
